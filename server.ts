@@ -149,8 +149,8 @@ async function startServer() {
     app.use(express.static('dist'));
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(\`Server running on http://localhost:\${PORT}\`);
+  app.listen(PORT as number, '0.0.0.0', () => {
+    console.log(`Server running on http://localhost:${PORT}`);
   });
 }
 
