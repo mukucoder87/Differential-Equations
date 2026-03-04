@@ -3,8 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useRef, useEffect } from 'react';
-import { GoogleGenAI, Type } from '@google/genai';
+import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
@@ -69,8 +68,6 @@ export default function App() {
   const [plotData, setPlotData] = useState<PlotData | null>(null);
   const [plotType, setPlotType] = useState<'solution' | 'phase'>('solution');
 
-  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-
   // --- Handlers ---
 
   const handleParseEquation = async () => {
@@ -78,32 +75,18 @@ export default function App() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await ai.models.generateContent({
-        model: 'gemini-3.1-pro-preview',
-        contents: `Analyze the following differential equation: ${equationInput}. 
-        Return a JSON object with:
-        - latex: The equation in LaTeX format (e.g., "\\frac{d^2y}{dt^2} + y = 0").
-        - allSymbols: Array of ALL unique variable and constant letters/symbols found in the equation (e.g., ["x", "y", "t", "a", "k"]).
-        - order: The order of the equation (integer).
-        - degree: The degree of the equation (integer).
-        - linearity: "Linear" or "Non-linear".`,
-        config: {
-          responseMimeType: 'application/json',
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              latex: { type: Type.STRING },
-              allSymbols: { type: Type.ARRAY, items: { type: Type.STRING } },
-              order: { type: Type.INTEGER },
-              degree: { type: Type.INTEGER },
-              linearity: { type: Type.STRING },
-            },
-            required: ['latex', 'allSymbols', 'order', 'degree', 'linearity'],
-          },
-        },
+      const response = await fetch('/api/parse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ equationInput })
       });
+      
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || 'Failed to parse equation');
+      }
 
-      const data = JSON.parse(response.text || '{}') as ParsedEquation;
+      const data = await response.json() as ParsedEquation;
       setParsedEq(data);
       
       // Auto-select defaults if possible
@@ -127,43 +110,18 @@ export default function App() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await ai.models.generateContent({
-        model: 'gemini-3.1-pro-preview',
-        contents: `Given the differential equation in LaTeX: ${parsedEq.latex}, where 't' is the independent variable (time), ${depVar} is the dependent variable.
-        The following variables depend on 't' and influence ${depVar}: ${intermediateVars.length > 0 ? intermediateVars.join(', ') : 'None'}.
-        The following are strictly constants: ${selectedConstants.length > 0 ? selectedConstants.join(', ') : 'None'}.
-        Return a JSON object with:
-        - theoreticalModels: Array of objects { name: "Model Name", description: "Brief description" } that resemble this equation.
-        - derivation: A markdown string containing the step-by-step analytical solution using standard mathematical techniques. Use LaTeX blocks for math.
-        - requiredInitialConditions: Array of strings representing the required initial conditions based on the order (e.g., ["${depVar}(0)", "${depVar}'(0)"]).`,
-        config: {
-          responseMimeType: 'application/json',
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              theoreticalModels: {
-                type: Type.ARRAY,
-                items: {
-                  type: Type.OBJECT,
-                  properties: {
-                    name: { type: Type.STRING },
-                    description: { type: Type.STRING },
-                  },
-                  required: ['name', 'description'],
-                },
-              },
-              derivation: { type: Type.STRING },
-              requiredInitialConditions: {
-                type: Type.ARRAY,
-                items: { type: Type.STRING },
-              },
-            },
-            required: ['theoreticalModels', 'derivation', 'requiredInitialConditions'],
-          },
-        },
+      const response = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ parsedEq, depVar, intermediateVars, selectedConstants })
       });
 
-      const data = JSON.parse(response.text || '{}') as AnalysisResult;
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || 'Failed to analyze equation');
+      }
+
+      const data = await response.json() as AnalysisResult;
       setAnalysis(data);
       
       // Initialize state for inputs
@@ -188,30 +146,18 @@ export default function App() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await ai.models.generateContent({
-        model: 'gemini-3.1-pro-preview',
-        contents: `Given the differential equation ${parsedEq.latex}, independent variable 't', dependent variable ${depVar}, constants ${JSON.stringify(constantValues)}, and initial conditions ${JSON.stringify(initialConditions)}.
-        Assume any intermediate time-dependent variables are either provided as constants or simplified for this numerical plot.
-        Generate numerical data to plot the solution curve for 't' from 0 to 10.
-        Return a JSON object with:
-        - t: Array of 100 numbers (independent variable values).
-        - y: Array of 100 numbers (dependent variable values).
-        - dydt: Array of 100 numbers (derivative values, for phase portrait). If it's a 1st order ODE, you can just compute the derivative at each point.`,
-        config: {
-          responseMimeType: 'application/json',
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              t: { type: Type.ARRAY, items: { type: Type.NUMBER } },
-              y: { type: Type.ARRAY, items: { type: Type.NUMBER } },
-              dydt: { type: Type.ARRAY, items: { type: Type.NUMBER } },
-            },
-            required: ['t', 'y', 'dydt'],
-          },
-        },
+      const response = await fetch('/api/plot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ parsedEq, depVar, constantValues, initialConditions })
       });
 
-      const data = JSON.parse(response.text || '{}') as PlotData;
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || 'Failed to generate plot data');
+      }
+
+      const data = await response.json() as PlotData;
       setPlotData(data);
       setStep(4);
     } catch (err: any) {
@@ -553,8 +499,8 @@ export default function App() {
                 layout={{
                   autosize: true,
                   margin: { l: 50, r: 20, t: 20, b: 40 },
-                  xaxis: { title: plotType === 'solution' ? 't' : depVar },
-                  yaxis: { title: plotType === 'solution' ? depVar : `d${depVar}/dt` },
+                  xaxis: { title: { text: plotType === 'solution' ? 't' : depVar } },
+                  yaxis: { title: { text: plotType === 'solution' ? depVar : `d${depVar}/dt` } },
                   hovermode: 'closest',
                   paper_bgcolor: 'transparent',
                   plot_bgcolor: 'transparent',
