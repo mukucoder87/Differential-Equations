@@ -36,6 +36,8 @@ type AnalysisResult = {
   theoreticalModels: TheoreticalModel[];
   derivation: string;
   requiredInitialConditions: string[];
+  conceptsAndTheories: string;
+  references: string[];
 };
 
 type PlotData = {
@@ -396,6 +398,32 @@ export default function App() {
                 </div>
               </div>
 
+              {/* Concepts and Theories */}
+              <div>
+                <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <BookOpen className="w-4 h-4" /> Concepts & Theories
+                </h3>
+                <div className="p-5 rounded-xl border border-slate-200 bg-white prose prose-sm max-w-none prose-p:leading-relaxed text-slate-700">
+                  <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
+                    {analysis.conceptsAndTheories}
+                  </ReactMarkdown>
+                </div>
+              </div>
+
+              {/* References */}
+              {analysis.references && analysis.references.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <BookOpen className="w-4 h-4" /> References to Study
+                  </h3>
+                  <ul className="list-disc list-inside space-y-2 text-sm text-slate-700 p-5 rounded-xl border border-slate-200 bg-slate-50">
+                    {analysis.references.map((ref, idx) => (
+                      <li key={idx}>{ref}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               {/* Setup for Graphing */}
               <div className="border-t border-slate-200 pt-6">
                 <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
@@ -526,7 +554,7 @@ export default function App() {
 
       <footer className="mt-12 mb-8 text-center">
         <p className="text-sm text-slate-500 font-medium">
-          Developed by <a href="https://www.linkedin.com/in/dr-mukunda-upadhyay-692351279/?originalSubdomain=in" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline font-semibold">Dr. Mukunda Upadhyay</a>
+          Concept and Design by <a href="https://www.linkedin.com/in/dr-mukunda-upadhyay-692351279/?originalSubdomain=in" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline font-semibold">Dr. Mukunda Upadhyay</a>
         </p>
       </footer>
     </div>

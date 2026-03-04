@@ -66,7 +66,9 @@ async function startServer() {
         Return a JSON object with:
         - theoreticalModels: Array of objects { name: "Model Name", description: "Brief description" } that resemble this equation.
         - derivation: A markdown string containing the step-by-step analytical solution using standard mathematical techniques. Use LaTeX blocks for math.
-        - requiredInitialConditions: Array of strings representing the required initial conditions based on the order (e.g., ["${depVar}(0)", "${depVar}'(0)"]).`,
+        - requiredInitialConditions: Array of strings representing the required initial conditions based on the order (e.g., ["${depVar}(0)", "${depVar}'(0)"]).
+        - conceptsAndTheories: A markdown string explaining the core concepts of this equation and any physical/mathematical theories concerning it.
+        - references: Array of strings containing academic references or topics to study further.`,
         config: {
           responseMimeType: 'application/json',
           responseSchema: {
@@ -88,8 +90,13 @@ async function startServer() {
                 type: Type.ARRAY,
                 items: { type: Type.STRING },
               },
+              conceptsAndTheories: { type: Type.STRING },
+              references: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING },
+              },
             },
-            required: ['theoreticalModels', 'derivation', 'requiredInitialConditions'],
+            required: ['theoreticalModels', 'derivation', 'requiredInitialConditions', 'conceptsAndTheories', 'references'],
           },
         },
       });
