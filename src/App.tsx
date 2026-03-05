@@ -10,7 +10,7 @@ import rehypeKatex from 'rehype-katex';
 import Plot from 'react-plotly.js';
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, MathRun } from 'docx';
 import { saveAs } from 'file-saver';
-import { Calculator, ChevronRight, Download, LineChart, BookOpen, Settings2, Loader2 } from 'lucide-react';
+import { Calculator, ChevronRight, Download, LineChart, BookOpen, Settings2, Loader2, Lightbulb } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -35,6 +35,7 @@ type TheoreticalModel = {
 type AnalysisResult = {
   theoreticalModels: TheoreticalModel[];
   derivation: string;
+  assumptionsAndDeductions: string;
   requiredInitialConditions: string[];
   conceptsAndTheories: string;
   references: string[];
@@ -383,6 +384,18 @@ export default function App() {
                       <p className="text-sm text-indigo-700/80 mt-1">{model.description}</p>
                     </div>
                   ))}
+                </div>
+              </div>
+
+              {/* Assumptions and Deductions */}
+              <div>
+                <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <Lightbulb className="w-4 h-4" /> Assumptions & Deductions
+                </h3>
+                <div className="p-5 rounded-xl border border-slate-200 bg-white prose prose-sm max-w-none prose-p:leading-relaxed text-slate-700">
+                  <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
+                    {analysis.assumptionsAndDeductions}
+                  </ReactMarkdown>
                 </div>
               </div>
 

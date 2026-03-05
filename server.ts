@@ -65,9 +65,10 @@ async function startServer() {
         The following are strictly constants: ${selectedConstants.length > 0 ? selectedConstants.join(', ') : 'None'}.
         Return a JSON object with:
         - theoreticalModels: Array of objects { name: "Model Name", description: "Brief description" } that resemble this equation.
-        - derivation: A markdown string containing the step-by-step analytical solution using standard mathematical techniques. Use LaTeX blocks for math.
+        - assumptionsAndDeductions: A markdown string detailing the mathematical and physical assumptions made to solve or model this equation, along with any key deductions. Format any math with $ and $$.
+        - derivation: A highly detailed, step-by-step analytical solution. Break down the derivation into numbered steps. Explain the rationale behind each step (e.g., 'Applying the quadratic formula', 'Integrating both sides'). You MUST show every single algebraic manipulation, integration step, and substitution. Do not skip steps. CRITICAL: You MUST format ALL math equations using standard Markdown LaTeX delimiters. Use single $ for inline math (e.g., $x^2$) and double $$ for block math (e.g., $$y = mx + b$$). Do NOT use parentheses () or brackets [] for math blocks.
         - requiredInitialConditions: Array of strings representing the required initial conditions based on the order (e.g., ["${depVar}(0)", "${depVar}'(0)"]).
-        - conceptsAndTheories: A markdown string explaining the core concepts of this equation and any physical/mathematical theories concerning it.
+        - conceptsAndTheories: A markdown string explaining the core concepts of this equation and any physical/mathematical theories concerning it. Format any math with $ and $$.
         - references: Array of strings containing academic references or topics to study further.`,
         config: {
           responseMimeType: 'application/json',
@@ -86,6 +87,7 @@ async function startServer() {
                 },
               },
               derivation: { type: Type.STRING },
+              assumptionsAndDeductions: { type: Type.STRING },
               requiredInitialConditions: {
                 type: Type.ARRAY,
                 items: { type: Type.STRING },
@@ -96,7 +98,7 @@ async function startServer() {
                 items: { type: Type.STRING },
               },
             },
-            required: ['theoreticalModels', 'derivation', 'requiredInitialConditions', 'conceptsAndTheories', 'references'],
+            required: ['theoreticalModels', 'derivation', 'assumptionsAndDeductions', 'requiredInitialConditions', 'conceptsAndTheories', 'references'],
           },
         },
       });
